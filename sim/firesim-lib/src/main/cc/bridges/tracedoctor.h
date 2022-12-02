@@ -20,6 +20,7 @@
 // workerRegister map here in the header file in the tracedoctor_t class
 #include "tracedoctor_worker.h"
 #include "tracedoctor_example.h"
+#include "tracedoctor_tea.h"
 
 #ifdef TRACEDOCTORBRIDGEMODULE_struct_guard
 
@@ -161,11 +162,29 @@ private:
         {"dummy",    [](std::vector<std::string> &args, struct traceInfo &info){
                       (void) args; return std::make_shared<tracedoctor_worker>("Dummy", args, info, TDWORKER_NO_FILES);
                   }},
-        {"filer",     [](std::vector<std::string> &args, struct traceInfo &info){
+        {"filer",        [](std::vector<std::string> &args, struct traceInfo &info){
                       return std::make_shared<tracedoctor_filedumper>(args, info);
                   }},
-        {"tracerv",     [](std::vector<std::string> &args, struct traceInfo &info){
+        {"tracerv",      [](std::vector<std::string> &args, struct traceInfo &info){
                       return std::make_shared<tracedoctor_tracerv>(args, info);
+                  }},
+        {"oracle",       [](std::vector<std::string> &args, struct traceInfo &info){
+                      return std::make_shared<tracedoctor_oracle>(args, info);
+                  }},
+        {"latency_hist", [](std::vector<std::string> &args, struct traceInfo &info){
+                      return std::make_shared<tracedoctor_latency_hist>(args, info);
+                  }},
+        {"tea_gold",     [](std::vector<std::string> &args, struct traceInfo &info){
+                      return std::make_shared<tracedoctor_tea_gold>(args, info);
+                  }},
+        {"tea_sampler",  [](std::vector<std::string> &args, struct traceInfo &info){
+                      return std::make_shared<tracedoctor_tea_sampler>(args, info);
+                  }},
+        {"ibs_sampler",  [](std::vector<std::string> &args, struct traceInfo &info){
+                      return std::make_shared<tracedoctor_ibs_sampler>(args, info);
+                  }},
+        {"pebs_sampler", [](std::vector<std::string> &args, struct traceInfo &info){
+                      return std::make_shared<tracedoctor_pebs_sampler>(args, info);
                   }}
     };
 
