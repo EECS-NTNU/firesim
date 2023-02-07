@@ -83,6 +83,8 @@ protected:
   uint16_t l2MissLatency = 32;
   uint16_t l3MissLatency = 84;
 
+  bool firstToken = true;
+
   std::mt19937 randomGenerator;
   std::uniform_int_distribution<unsigned long> randomRange;
 public:

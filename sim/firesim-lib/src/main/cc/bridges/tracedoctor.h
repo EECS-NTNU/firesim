@@ -165,9 +165,6 @@ private:
         {"filer",        [](std::vector<std::string> &args, struct traceInfo &info){
                       return std::make_shared<tracedoctor_filedumper>(args, info);
                   }},
-        {"tracerv",      [](std::vector<std::string> &args, struct traceInfo &info){
-                      return std::make_shared<tracedoctor_tracerv>(args, info);
-                  }},
         {"oracle",       [](std::vector<std::string> &args, struct traceInfo &info){
                       return std::make_shared<tracedoctor_oracle>(args, info);
                   }},

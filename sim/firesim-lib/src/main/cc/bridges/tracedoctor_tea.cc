@@ -110,10 +110,10 @@ inline bool base_profiler::triggerDetection(struct robAnalysisToken const &token
 
   // When returned true, timing must be restart from that point
   // currently no triggers are supported, so no restart of timing
-  //
-  // TODO: my latest thoughts....
-  // trigger detection should have some support from the tracedoctor interface with the
-  // flexibility for individual workers to act on it or not
+  if (firstToken) {
+    firstToken = false;
+    return true;
+  }
   return false;
 }
 
@@ -395,7 +395,10 @@ void tracedoctor_oracle::tick(char const * const data, unsigned int tokens) {
 
   for (unsigned int i = 0; i < tokens; i ++) {
     struct robAnalysisToken const &token = trace[i];
-    triggerDetection(token);
+    if (triggerDetection(token)) {
+      lastToken = token;
+      continue;
+    }
 
     // Oracle only needs to parse between committing, populated and exception tokens
     if (token.state.rob & (ROB_POPULATED | ROB_COMMITTING | ROB_EXCEPTION)) {
@@ -552,7 +555,11 @@ void tracedoctor_tea_gold::tick(char const * const data, unsigned int tokens) {
   struct robAnalysisToken const * const trace = (struct robAnalysisToken const *) data;
   for (unsigned int i = 0; i < tokens; i ++) {
     struct robAnalysisToken const &token = trace[i];
-    triggerDetection(token);
+    if (triggerDetection(token)) {
+      lastInstructionRegister = {};
+      lastProgressCycle = token.state.tsc_cycle;
+      continue;
+    }
 
 
     if ((token.state.rob & ROB_POPULATED) && lastInstructionRegister.oir) {
@@ -686,6 +693,12 @@ void tracedoctor_tea_sampler::tick(char const * const data, unsigned int tokens)
   struct robAnalysisToken const * const trace = (struct robAnalysisToken const *) data;
   for (unsigned int i = 0; i < tokens; i ++) {
     struct robAnalysisToken const &token = trace[i];
+    if (triggerDetection(token)) {
+      lastInstructionRegister = {};
+      lastProgressCycle = token.state.tsc_cycle;
+      restartSampling(token.state.tsc_cycle);
+      continue;
+    }
 
     // TEA sampler algorithm only designed to work between commits, exceptions and popluations
     if (token.state.rob & (ROB_COMMITTING | ROB_EXCEPTION | ROB_POPULATED)) {
@@ -895,7 +908,12 @@ void tracedoctor_ibs_sampler::tick(char const * const data, unsigned int tokens)
   struct robAnalysisToken const * const trace = (struct robAnalysisToken const *) data;
   for (unsigned int i = 0; i < tokens; i ++) {
     struct robAnalysisToken const &token = trace[i];
-
+    if (triggerDetection(token)) {
+      lastInstructionRegister = {};
+      lastProgressCycle = token.state.tsc_cycle;
+      restartSampling(token.state.tsc_cycle);
+      continue;
+    }
 
     if ((token.state.rob & ROB_POPULATED) && (lastInstructionRegister.flags & INSTR_OIR)) {
       lastProgressCycle = token.state.tsc_cycle - 1;
@@ -1021,6 +1039,12 @@ void tracedoctor_pebs_sampler::tick(char const * const data, unsigned int tokens
   struct robAnalysisToken const * const trace = (struct robAnalysisToken const *) data;
   for (unsigned int i = 0; i < tokens; i ++) {
     struct robAnalysisToken const &token = trace[i];
+    if (triggerDetection(token)) {
+      lastInstructionRegister = {};
+      lastProgressCycle = token.state.tsc_cycle;
+      restartSampling(token.state.tsc_cycle);
+      continue;
+    }
 
     if ((token.state.rob & ROB_POPULATED) && (lastInstructionRegister.flags & INSTR_OIR)) {
       lastProgressCycle = token.state.tsc_cycle - 1;
