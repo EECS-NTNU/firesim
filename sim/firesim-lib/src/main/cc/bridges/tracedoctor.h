@@ -14,6 +14,7 @@
 #include <queue>
 #include <atomic>
 #include <chrono>
+#include <numeric>
 #include <functional>
 // Add some more workers
 // If you add/remove workers, they must be registered/deregistered in the
@@ -117,7 +118,7 @@ public:
 };
 
 #define locktype_t spinlock
-//#define locktype_t std::mutex
+// #define locktype_t std::mutex
 
 
 struct protectedWorker {
@@ -153,13 +154,14 @@ public:
     virtual bool terminate() { return false; }
     virtual int exit_code() { return 0; }
     virtual void finish() { flush(); };
-    virtual void work(unsigned int threadIndex);
+    virtual void balancedWork(unsigned int const threadIndex);
+    virtual void work(unsigned int const threadIndex);
 
 private:
     // Add you workers here:
     std::map<std::string,
              std::function<std::shared_ptr<tracedoctor_worker>(std::vector<std::string> &, struct traceInfo &)>> workerRegister = {
-        {"dummy",    [](std::vector<std::string> &args, struct traceInfo &info){
+        {"dummy",       [](std::vector<std::string> &args, struct traceInfo &info){
                       (void) args; return std::make_shared<tracedoctor_worker>("Dummy", args, info, TDWORKER_NO_FILES);
                   }},
         {"filer",        [](std::vector<std::string> &args, struct traceInfo &info){
@@ -182,7 +184,6 @@ private:
                   }},
         {"pebs_sampler", [](std::vector<std::string> &args, struct traceInfo &info){
                       return std::make_shared<tracedoctor_pebs_sampler>(args, info);
-                  }}
     };
 
     TRACEDOCTORBRIDGEMODULE_struct * mmioAddrs;
@@ -190,31 +191,30 @@ private:
     int streamDepth;
 
     std::vector<std::thread> workerThreads;
-
     std::vector<std::shared_ptr<protectedWorker>> workers;
     std::vector<std::shared_ptr<referencedBuffer>> buffers;
 
-    locktype_t workerQueueLock;
-    locktype_t workerSyncLock;
-    std::condition_variable_any workerQueueCond;
-    std::queue<std::pair<std::shared_ptr<protectedWorker>, std::shared_ptr<referencedBuffer>>> workerQueue;
+    locktype_t workQueueLock;
+    std::condition_variable_any workQueueCond;
+    std::vector<std::queue<std::shared_ptr<referencedBuffer>>> workQueues;
+    bool workQueuesMaybeEmpty = true;
 
     unsigned int bufferIndex = 0;
     unsigned int bufferGrouping = 1;
-    unsigned int bufferDepth = 1;
+    unsigned int bufferDepth = 64;
     unsigned int bufferTokenCapacity;
     unsigned int bufferTokenThreshold;
     unsigned long int totalTokens = 0;
 
+
     std::chrono::duration<double> tickTime = std::chrono::seconds(0);
-    std::chrono::duration<double> dmaTime = std::chrono::seconds(0);
 
     ClockInfo clock_info;
     struct traceInfo info = {};
 
     bool traceEnabled = false;
     unsigned int traceTrigger = 0;
-    unsigned int traceThreads = 0;
+    int traceThreads = -1;
     bool exit = false;
 
     std::shared_ptr<protectedWorker> getWorker(std::string workername, std::vector<std::string> &args, struct traceInfo &info);
