@@ -76,6 +76,15 @@ class WithAutoCounterPrintf extends Config((site, here, up) => {
   case midas.SynthPrints => true
 })
 
+class BaseF1ConfigMemAsserts extends Config(
+  new WithSynthAsserts ++
+  new WithWiringTransform ++
+  new WithAsyncResetReplacement ++
+  new WithEC2F1Artefacts ++
+//  new WithILATopWiringTransform ++
+  new midas.F1Config1Mem
+)
+
 class BaseF1Config extends Config(
   new WithWiringTransform ++
   new WithAsyncResetReplacement ++
