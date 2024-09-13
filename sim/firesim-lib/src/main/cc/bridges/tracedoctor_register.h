@@ -4,6 +4,7 @@
 #include "tracedoctor_worker.h"
 #include "tracedoctor_example.h"
 #include "tracedoctor_tea.h"
+#include "tracedoctor_shadow.h"
 
 #include <string>
 #include <memory>
@@ -32,6 +33,7 @@ static tracedoctor_register_t const tracedoctor_register = {
   REGISTER_TRACEDOCTOR_WORKER("tea_sampler",  tracedoctor_tea_sampler),
   REGISTER_TRACEDOCTOR_WORKER("ibs_sampler",  tracedoctor_ibs_sampler),
   REGISTER_TRACEDOCTOR_WORKER("pebs_sampler",  tracedoctor_pebs_sampler),
+  REGISTER_TRACEDOCTOR_WORKER("shadow",  tracedoctor_shadow)
 };
 
 // HINT: if the compiler complains about 'expected primary-expression'
