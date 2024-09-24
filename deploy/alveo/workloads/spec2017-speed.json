@@ -1,0 +1,21 @@
+[
+{ "name" : "spec2017-600.perlbench_s"},
+{ "name" : "spec2017-602.gcc_s"},
+{ "name" : "spec2017-603.bwaves_s"},
+{ "name" : "spec2017-605.mcf_s"},
+{ "name" : "spec2017-607.cactuBSSN_s"},
+{ "name" : "spec2017-619.lbm_s"},
+{ "name" : "spec2017-620.omnetpp_s"},
+{ "name" : "spec2017-621.wrf_s"},
+{ "name" : "spec2017-623.xalancbmk_s"},
+{ "name" : "spec2017-625.x264_s"},
+{ "name" : "spec2017-628.pop2_s"},
+{ "name" : "spec2017-631.deepsjeng_s"},
+{ "name" : "spec2017-638.imagick_s"},
+{ "name" : "spec2017-641.leela_s"},
+{ "name" : "spec2017-644.nab_s"},
+{ "name" : "spec2017-648.exchange2_s"},
+{ "name" : "spec2017-649.fotonik3d_s"},
+{ "name" : "spec2017-654.roms_s"},
+{ "name" : "spec2017-657.xz_s"}
+]

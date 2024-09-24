@@ -1,0 +1,2 @@
+totalCycles;totalCommitted;totalBranches;totalBranchLatency;totalFilledMSHRs;totalMemAccesses;totalHitsInCache;totalMissesInCache;totalTaintsCalced;totalYrotsOnCalc;totalTaintedLoads;totalFilledIntIssueSlots;totalFilledFpIssueSlots;totalFilledMemIssueSlots
+8473313678;6898363441;883603632;15673663021;4268499930;0;2986903921;449140051;0;0;0;41155962535;124458;20295044982

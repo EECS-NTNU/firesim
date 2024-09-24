@@ -16,6 +16,22 @@ template <typename T, typename N> inline void value2hist(histogram<T> &hist, T c
   vec[value] += increment;
 }
 
+inline void hist2file(std::vector<uint64_t> hist) {
+  std::ostringstream outbuf;
+  outbuf.str("");
+  int const maxValue = hist.size()-1;
+  for (int value = 0; value < maxValue; value++) {
+    if (hist[value] == 0)
+      continue;
+    outbuf << value << ":" << hist[value] << ";";
+  }
+  outbuf << maxValue << ":" << hist[maxValue];
+  FILE *out = fopen("latency-hist.txt", "w");
+  assert(out);
+  fprintf(out, "%s%s\n", "latency-hist;", outbuf.str().c_str());
+  fclose(out);
+}
+
 template <typename T, typename N> inline void hist2file(FILE * const &out, histogram<T> const hist, std::string const prefix = "") {
   std::ostringstream outbuf;
   for (auto &map: hist) {
@@ -50,13 +66,36 @@ template <typename T, typename N, unsigned long const norm> inline void hist2fil
   }
 }
 
-void tracedoctor_shadow::print_debug(char const * const data) {
+void tracedoctor_shadow::print_debug(char const * const data, struct traceStatsSample const &sample) {
   if (!stream) {
     stream.open("/cluster/home/amundbk/chipyard/sims/firesim/deploy/alveo/trace-debug.txt");
   }
   assert(stream);
   stream.write(data, 64);
   stream.flush();
+  if (!failing) {
+    failing = fopen("/cluster/home/amundbk/chipyard/sims/firesim/deploy/alveo/sample-debug.txt", "w   ");
+  }
+  assert(failing);
+  fprintf(failing, "%u %u %u %u ; %u %u %u %u ; %u %u %u %u ; %u %u %u %u\n",
+    sample.isCommit[0],
+    sample.isCommit[1],
+    sample.isCommit[2],
+    sample.isCommit[3],
+    sample.isBranch[0],
+    sample.isBranch[1],
+    sample.isBranch[2],
+    sample.isBranch[3],
+    sample.branchLatency[0],
+    sample.branchLatency[1],
+    sample.branchLatency[2],
+    sample.branchLatency[3],
+    sample.instLatency[0],
+    sample.instLatency[1],
+    sample.instLatency[2],
+    sample.instLatency[3]
+    );
+
 }
 
 bool tracedoctor_shadow::check_sample(struct traceStatsSample const &sample) {
@@ -83,7 +122,7 @@ void tracedoctor_shadow::dump_failing_token(char const * const data, int tokens,
   fprintf(failing, "%lu %u %u %u %u%u%u %u %u%u%u %u%u%u\n",
     token.branchLatency,
 
-    token.numCommit,
+    token.isCommit,
     
     token.isBranch,
     
@@ -104,7 +143,7 @@ void tracedoctor_shadow::dump_failing_token(char const * const data, int tokens,
     token.filledMemIssueSlots);
   
   fprintf(failing, "%u %u%u%u%u %u%u%u%u %u %u%u%u %u%u%u %u%u%u\n",
-    sample.numCommit,
+    sample.isCommit,
     
     sample.isBranch[0],
     sample.isBranch[1],
@@ -130,6 +169,7 @@ void tracedoctor_shadow::dump_failing_token(char const * const data, int tokens,
     sample.filledFpIssueSlots,
     sample.filledMemIssueSlots
     );
+    fclose(failing);
 }
 
 
@@ -141,16 +181,18 @@ tracedoctor_shadow::tracedoctor_shadow(std::vector<std::string> const args, stru
 
 tracedoctor_shadow::~tracedoctor_shadow() {
   flushResult();
+  hist2file(instLatencyHist);
 }
 
 void tracedoctor_shadow::flushHeader() {
-  fprintf(std::get<freg_descriptor>(fileRegister[0]), "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
+  fprintf(std::get<freg_descriptor>(fileRegister[0]), "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
           "totalCycles",
           "totalCommitted",
 
           "totalBranches",
           "totalBranchLatency",
 
+          "totalMispredicts",
           "totalFilledMSHRs",
 
           "totalMemAccesses",
@@ -163,19 +205,29 @@ void tracedoctor_shadow::flushHeader() {
 
           "totalFilledIntIssueSlots",
           "totalFilledFpIssueSlots",
-          "totalFilledMemIssueSlots"
+          "totalFilledMemIssueSlots",
+
+          "totalStallIFURedirect",
+          "totalStallROCCWait",
+          "totalStallWaitForEmpty",
+          "totalStallRenStall",
+          "totalStallIssueFull",
+          "totalStallSTQFull",
+          "totalStallLSQFull",
+          "totalStallROBNotReady"
   );
 }
 
 
 void tracedoctor_shadow::flushResult() {
-  fprintf(std::get<freg_descriptor>(fileRegister[0]), "%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu\n",
+  fprintf(std::get<freg_descriptor>(fileRegister[0]), "%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu\n",
           result.totalCycles,
           result.totalCommitted,
 
           result.totalBranches,
           result.totalBranchLatency,
 
+          result.totalMispredicts,
           result.totalFilledMSHRs,
           
           result.totalMemAccesses,
@@ -188,18 +240,30 @@ void tracedoctor_shadow::flushResult() {
 
           result.totalFilledIntIssueSlots,
           result.totalFilledFpIssueSlots,
-          result.totalFilledMemIssueSlots
+          result.totalFilledMemIssueSlots,
+
+          result.totalStallIFURedirect,
+          result.totalStallROCCWait,
+          result.totalStallWaitForEmpty,
+          result.totalStallRenStall,
+          result.totalStallIssueFull,
+          result.totalStallSTQFull,
+          result.totalStallLSQFull,
+          result.totalStallROBNotReady
   );
 }
 
 void tracedoctor_shadow::build_sample(struct traceStatsToken const &trace,
                                       struct traceStatsSample &sample) {
-  sample.numCommit = trace.numCommit;
+  for (int i = 0; i < COREWIDTH; i++) {
+    sample.isCommit[i] = !!(trace.isCommit & (0x1 << i));
+    sample.isBranch[i] = !!(trace.isBranch & (0x1 << i));
 
-  for (int i = 0; i < 4; i++) {
-    sample.isBranch[i] = (bool) ((trace.isBranch >> i) & 0x1);
-    sample.branchLatency[i] = (uint16_t) ((trace.branchLatency >> (i*16)) & 0xFFFF);
+    sample.branchLatency[i] = trace.branchLatency[i];
+    sample.instLatency[i] = trace.instLatency[i];
   }
+
+  sample.isMispredict = (bool) trace.branchMispredict;
 
   sample.filledMSHRs = trace.filledMSHRs;
 
@@ -214,21 +278,44 @@ void tracedoctor_shadow::build_sample(struct traceStatsToken const &trace,
   sample.filledIntIssueSlots = trace.filledIntIssueSlots;
   sample.filledFpIssueSlots = trace.filledFpIssueSlots;
   sample.filledMemIssueSlots = trace.filledMemIssueSlots;
+
+  sample.stallIFURedirect = trace.blockingSignals & STALL_IFU_REDIRECT;
+  sample.stallROCCWait    = trace.blockingSignals & STALL_ROCC;
+  sample.stallWaitForEmpty = trace.blockingSignals & STALL_W8_EMPTY;
+  sample.stallRenStall    = trace.blockingSignals & STALL_REN_STALL;
+  sample.stallIssueFull   = trace.blockingSignals & STALL_ISSUE_FULL;
+  sample.stallSTQFull     = trace.blockingSignals & STALL_STQ_FULL;
+  sample.stallLSQFull     = trace.blockingSignals & STALL_LSQ_FULL;
+  sample.stallROBNotReady = trace.blockingSignals & STALL_ROB;
 }
 
 void tracedoctor_shadow::addStats(struct traceStatsSummary &results, 
                                   struct traceStatsSample &sample) {
   results.totalCycles += 1;
-  results.totalCommitted += sample.numCommit;
 
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < COREWIDTH; i++) {
     if (sample.isBranch[i]) {
       results.totalBranches++;
       results.totalBranchLatency += sample.branchLatency[i];
     }
+
+    if (sample.isCommit[i]) {
+      results.totalCommitted++;
+
+      int value = sample.instLatency[i];
+      if (instLatencyHist.size() <= value) {
+        instLatencyHist.resize(value + 1);
+      }
+      instLatencyHist[value] += 1;
+    }
+  }
+
+  if (sample.isMispredict) {
+    results.totalMispredicts++;
   }
 
   results.totalFilledMSHRs += sample.filledMSHRs;
+  results.totalMemAccesses += sample.memAccesses;
   results.totalHitsInCache += sample.hitsInCache;
   results.totalMissesInCache += sample.missesInCache;
 
@@ -239,6 +326,15 @@ void tracedoctor_shadow::addStats(struct traceStatsSummary &results,
   results.totalFilledIntIssueSlots += sample.filledIntIssueSlots;
   results.totalFilledFpIssueSlots += sample.filledFpIssueSlots;
   results.totalFilledMemIssueSlots += sample.filledMemIssueSlots;
+
+  results.totalStallIFURedirect += sample.stallIFURedirect;
+  results.totalStallROCCWait += sample.stallROCCWait;
+  results.totalStallWaitForEmpty += sample.stallWaitForEmpty;
+  results.totalStallRenStall += sample.stallRenStall;
+  results.totalStallIssueFull += sample.stallIssueFull;
+  results.totalStallSTQFull += sample.stallSTQFull;
+  results.totalStallLSQFull += sample.stallLSQFull;
+  results.totalStallROBNotReady += sample.stallROBNotReady;
 }
 
 bool tracedoctor_shadow::triggerDetection(struct traceStatsToken const &token) {
@@ -253,6 +349,7 @@ bool tracedoctor_shadow::triggerDetection(struct traceStatsToken const &token) {
 void tracedoctor_shadow::tick(char const * const data, unsigned int tokens) {
   struct traceStatsToken const * const trace = (struct traceStatsToken const *) data;
 
+  struct traceStatsSample sample;
   for (unsigned int i = 0; i < tokens; i ++) {
     struct traceStatsToken const &token = trace[i];
     if (triggerDetection(token)) {
@@ -260,12 +357,11 @@ void tracedoctor_shadow::tick(char const * const data, unsigned int tokens) {
       continue;
     }
 
-    struct traceStatsSample sample;
+    build_sample(token, sample);
 
     if (result.totalCycles % 10000 == 0) {
-      print_debug(data);
+      print_debug(data, sample);
     }
-    build_sample(token, sample);
     //if (!check_sample(sample)) {
     //  dump_failing_token(data, tokens, token, sample);
     //  assert(false);

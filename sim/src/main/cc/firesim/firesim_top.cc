@@ -29,7 +29,7 @@ firesim_top_t::firesim_top_t(int argc, char **argv) {
 
   for (auto &arg : args) {
     if (arg.find("+max-cycles=") == 0) {
-      max_cycles = atoi(arg.c_str() + 12);
+      max_cycles = atol(arg.c_str() + 12);
     }
     if (arg.find("+profile-interval=") == 0) {
       profile_interval = atoi(arg.c_str() + 18);

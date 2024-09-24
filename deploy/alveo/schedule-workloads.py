@@ -36,7 +36,7 @@ def replaceValues(target, valueMap: dict):
     return target
 
 
-def runWorker(workerId, runDir, workloadQueue: Queue, resource):
+def runWorker(workerId, runDir, workloadQueue: Queue, resource, name):
     signal.signal(signal.SIGINT, signal.default_int_handler)
     signal.signal(signal.SIGTERM, signal.SIG_DFL)
     print(f'[Worker #{workerId}] worker started')
@@ -46,7 +46,7 @@ def runWorker(workerId, runDir, workloadQueue: Queue, resource):
     workerValueMap = {
         '%worker%': str(workerId),
         '%resource%': '' if resource is None else resource,
-        '%name%': ''
+        '%name%': '' if name is None else name
     }
 
     while True:
@@ -256,7 +256,7 @@ if not os.path.exists(mainConfig['run_dir']):
 workers = []
 print(f'Starting {args.parallel} workers')
 for i in range(args.parallel):
-    w = Process(target=runWorker, args=(i, mainConfig['run_dir'], workloadQueue, args.resources[i]))
+    w = Process(target=runWorker, args=(i, mainConfig['run_dir'], workloadQueue, args.resources[i], mainConfig['default_workload']['name']))
     w.start()
     workers.append(w)
 

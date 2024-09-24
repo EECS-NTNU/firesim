@@ -4,7 +4,7 @@
 		"release" : "scripts/releaseIdunFpgas.sh"
 	},
 	"default_workload": {
-		"name" : "unnamed",
+		"name" : "baseline",
 		"scripts" : {
 			"preexec" : "scripts/prepareFireSimImage.sh",
 			"exec" : "scripts/launchFireSim.sh",
@@ -13,7 +13,7 @@
 		"parameters": {
 			"preexec": "%resource% %name%",
 			"exec": "%resource% %name%",
-			"postexec": "%resource% %name%"
+			"postexec": "%resource% %name% baseline"
 		},
 		"environment": {
 			"name": "%name%",
@@ -21,9 +21,9 @@
 			"resource": "%resource%",
 			"PLATFORM": "alveo",
 			"ALVEO_PLATFORM": "u250",
-			"TARGET_CONFIG": "FireSimRocketConfig",
+			"TARGET_CONFIG": "WithDefaultFireSimBridges_firesim.configs.WithDefaultMemModel_WithFireSimConfigTweaks_chipyard.MegaBoomConfigStats",
 			"PLATFORM_CONFIG": "BaseF1Config1Mem_F50MHz",
-			"CUSTOM_RUNTIME_CONFIG": "common/custom_runtime.conf"
+			"CUSTOM_RUNTIME_CONFIG": "common/shadowbinding-runtime.conf"
 		}
 	},
 	"run_dir": "runs",

@@ -1,0 +1,31 @@
+{
+	"resources" : {
+		"acquire" : "scripts/acquireIdunFpgas.sh",
+		"release" : "scripts/releaseIdunFpgas.sh"
+	},
+	"default_workload": {
+		"name" : "unnamed",
+		"scripts" : {
+			"preexec" : "scripts/prepareFireSimImage.sh",
+			"exec" : "scripts/launchFireSim.sh",
+			"postexec" : "scripts/finishFireSimImage.sh"
+		},
+		"parameters": {
+			"preexec": "%resource% %name%",
+			"exec": "%resource% %name%",
+			"postexec": "%resource% %name%"
+		},
+		"environment": {
+			"name": "%name%",
+			"worker": "%worker%",
+			"resource": "%resource%",
+			"PLATFORM": "alveo",
+			"ALVEO_PLATFORM": "u250",
+			"TARGET_CONFIG": "WithDefaultFireSimBridges_firesim.configs.WithDefaultMemModel_WithFireSimConfigTweaks_chipyard.MegaBoomConfigNDAStats",
+			"PLATFORM_CONFIG": "BaseF1Config1Mem_F50MHz",
+			"CUSTOM_RUNTIME_CONFIG": "common/shadowbinding-runtime.conf"
+		}
+	},
+	"run_dir": "runs",
+	"workloads": []
+}

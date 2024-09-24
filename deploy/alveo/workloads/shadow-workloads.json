@@ -1,0 +1,16 @@
+[
+    { "name" : "spec2017-pmapld-ref-520.omnetpp_r" },
+    { "name" : "spec2017-pmapld-ref-521.wrf_r" },
+    { "name" : "spec2017-pmapld-ref-523.xalancbmk_r" },
+    { "name" : "spec2017-pmapld-ref-525.x264_r" },
+    { "name" : "spec2017-pmapld-ref-527.cam4_r" },
+    { "name" : "spec2017-pmapld-ref-531.deepsjeng_r" },
+    { "name" : "spec2017-pmapld-ref-538.imagick_r" },
+    { "name" : "spec2017-pmapld-ref-541.leela_r" },
+    { "name" : "spec2017-pmapld-ref-544.nab_r" },
+    { "name" : "spec2017-pmapld-ref-548.exchange2_r" },
+    { "name" : "spec2017-pmapld-ref-549.fotonik3d_r" },
+    { "name" : "spec2017-pmapld-ref-554.roms_r" },
+    { "name" : "spec2017-pmapld-ref-557.xz_r" }
+  ]
+  

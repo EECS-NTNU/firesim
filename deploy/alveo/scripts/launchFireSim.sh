@@ -21,7 +21,8 @@ if [ -z ${PLATFORM_CONFIG+x} ]; then
 	exit 1
 fi
 
-ALVEO_PLATFORM=$(fpga-util.py -l | awk "NR>1 && \$2 == \"${FPGA}\"{print \$4; exit}")
+#ALVEO_PLATFORM=$(fpga-util.py -l | awk "NR>1 && \$2 == \"${FPGA}\"{print \$4; exit}")
+#ALVEO_PLATFORM="u250"
 
 DRIVER="${SCRIPT_DIR}/../../../sim/output/${PLATFORM}/FireSim-${TARGET_CONFIG}-${PLATFORM_CONFIG}/FireSim-alveo"
 RUNTIME_CONFIG="${SCRIPT_DIR}/../../../sim/output/${PLATFORM}/FireSim-${TARGET_CONFIG}-${PLATFORM_CONFIG}/runtime.conf"
@@ -61,7 +62,8 @@ if [ $FAIL -ne 0 ]; then
 fi
 
 fpga-util.py -f "${FPGA}" -b "${BITSTREAM}"
-FPGA_ID=$(fpga-util.py -l | tail -n +2 | grep -F "${FPGA}" | awk '{print $3}')
+#FPGA_ID=$(fpga-util.py -l | tail -n +2 | grep -F "${FPGA}" | awk '{print $3}')
+FPGA_ID=$(fpga-util.py -l | tail -n +2 | grep -F "${FPGA}" | awk '{print $2}')
 
 echo "+permissive" > "${IMAGE_RUNTIME_CONFIG}"
 
