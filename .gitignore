@@ -11,3 +11,9 @@ scala-doc-env.sh
 *.swp
 /.conda-env
 deploy/alveo/runs/*
+deploy/alveo/results
+deploy/alveo/configs/*
+!deploy/alveo/configs/example-config.json
+deploy/alveo/sample-debug.txt
+deploy/alveo/trace-debug.txt
+libtinfo.so.5
