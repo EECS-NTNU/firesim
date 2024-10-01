@@ -17,3 +17,4 @@ deploy/alveo/configs/*
 deploy/alveo/sample-debug.txt
 deploy/alveo/trace-debug.txt
 libtinfo.so.5
+*.csv
