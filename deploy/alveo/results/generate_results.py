@@ -10,6 +10,7 @@ file_headers = []
 all_results = {}
 for config in configs:
     files = listdir(config)
+    files = [x for x in files if "inst-latency" not in x]
     assert(len(files) > 0)
 
     results = {}
