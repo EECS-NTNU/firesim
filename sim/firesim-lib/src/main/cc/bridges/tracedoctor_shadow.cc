@@ -185,19 +185,25 @@ tracedoctor_shadow::~tracedoctor_shadow() {
 }
 
 void tracedoctor_shadow::flushHeader() {
-  fprintf(std::get<freg_descriptor>(fileRegister[0]), "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
+  fprintf(std::get<freg_descriptor>(fileRegister[0]),
+  //                          10                            10                            10
+  "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
           "totalCycles",
           "totalCommitted",
 
           "totalBranches",
           "totalBranchLatency",
 
+          "totalLoads",          
+          "totalStores",
+
           "totalMispredicts",
           "totalFilledMSHRs",
 
           "totalMemAccesses",
-          "totalHitsInCache",
+          "totalHitsInCache", //10
           "totalMissesInCache",
+          "totalPartialIssues",
           
           "totalTaintsCalced",
           "totalYrotsOnCalc",
@@ -207,25 +213,46 @@ void tracedoctor_shadow::flushHeader() {
           "totalFilledFpIssueSlots",
           "totalFilledMemIssueSlots",
 
+          "totalFilledStoreSlots",
+          "totalFilledStoreAddr", //10
+          "totalFilledStoreData",
+          "totalFilledLoadSlots",
+          "totalFilledLoadAddr",          
+
           "totalStallIFURedirect",
           "totalStallROCCWait",
           "totalStallWaitForEmpty",
           "totalStallRenStall",
           "totalStallIssueFull",
           "totalStallSTQFull",
-          "totalStallLSQFull",
-          "totalStallROBNotReady"
+          "totalStallLSQFull", // 10
+          "totalStallROBNotReady",
+
+          "totalException",
+          "totalRollback",
+          "totalMemOrderingException",
+          "totalLoadPageFault",
+          "totalStorePageFault",
+          "totalFetchAccessException",
+          "totalMisalignedLoad",
+          "totalMisalignedStore"
+          //10
   );
 }
 
 
 void tracedoctor_shadow::flushResult() {
-  fprintf(std::get<freg_descriptor>(fileRegister[0]), "%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu\n",
+  fprintf(std::get<freg_descriptor>(fileRegister[0]), 
+                                    // 10                                      10                                       10
+  "%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu\n",
           result.totalCycles,
           result.totalCommitted,
 
           result.totalBranches,
           result.totalBranchLatency,
+
+          result.totalLoads,
+          result.totalStores,
 
           result.totalMispredicts,
           result.totalFilledMSHRs,
@@ -233,6 +260,7 @@ void tracedoctor_shadow::flushResult() {
           result.totalMemAccesses,
           result.totalHitsInCache,
           result.totalMissesInCache,
+          result.totalPartialIssues,
           
           result.totalTaintsCalced,
           result.totalYrotsOnCalc,
@@ -242,6 +270,12 @@ void tracedoctor_shadow::flushResult() {
           result.totalFilledFpIssueSlots,
           result.totalFilledMemIssueSlots,
 
+          result.totalFilledStoreSlots,
+          result.totalFilledStoreAddr,
+          result.totalFilledStoreData,
+          result.totalFilledLoadSlots,  
+          result.totalFilledLoadAddr,
+
           result.totalStallIFURedirect,
           result.totalStallROCCWait,
           result.totalStallWaitForEmpty,
@@ -249,7 +283,16 @@ void tracedoctor_shadow::flushResult() {
           result.totalStallIssueFull,
           result.totalStallSTQFull,
           result.totalStallLSQFull,
-          result.totalStallROBNotReady
+          result.totalStallROBNotReady,
+          
+          result.totalException,
+          result.totalRollback,
+          result.totalMemOrderingException,
+          result.totalLoadPageFault,
+          result.totalStorePageFault,
+          result.totalFetchAccessException,
+          result.totalMisalignedLoad,
+          result.totalMisalignedStore
   );
 }
 
@@ -258,6 +301,8 @@ void tracedoctor_shadow::build_sample(struct traceStatsToken const &trace,
   for (int i = 0; i < COREWIDTH; i++) {
     sample.isCommit[i] = !!(trace.isCommit & (0x1 << i));
     sample.isBranch[i] = !!(trace.isBranch & (0x1 << i));
+    sample.isLoad[i]   = !!(trace.isLoad & (0x1 << i));
+    sample.isStore[i]  = !!(trace.isStore & (0x1 << i));
 
     sample.branchLatency[i] = trace.branchLatency[i];
     sample.instLatency[i] = trace.instLatency[i];
@@ -270,6 +315,7 @@ void tracedoctor_shadow::build_sample(struct traceStatsToken const &trace,
   sample.memAccesses = trace.memAccesses;
   sample.hitsInCache = trace.hitsInCache;
   sample.missesInCache = trace.missesInCache;
+  sample.partialIssues = trace.partialIssues;
   
   sample.taintsCalced = trace.taintsCalced;
   sample.yrotsOnCalc = trace.yrotsOnCalc;
@@ -279,6 +325,12 @@ void tracedoctor_shadow::build_sample(struct traceStatsToken const &trace,
   sample.filledFpIssueSlots = trace.filledFpIssueSlots;
   sample.filledMemIssueSlots = trace.filledMemIssueSlots;
 
+  sample.filledStoreSlots = trace.filledStoreSlots;
+  sample.filledStoreAddr = trace.filledStoreAddr;
+  sample.filledStoreData = trace.filledStoreData;
+  sample.filledLoadSlots = trace.filledLoadSlots;
+  sample.filledLoadAddr = trace.filledLoadAddr;
+
   sample.stallIFURedirect = trace.blockingSignals & STALL_IFU_REDIRECT;
   sample.stallROCCWait    = trace.blockingSignals & STALL_ROCC;
   sample.stallWaitForEmpty = trace.blockingSignals & STALL_W8_EMPTY;
@@ -287,6 +339,15 @@ void tracedoctor_shadow::build_sample(struct traceStatsToken const &trace,
   sample.stallSTQFull     = trace.blockingSignals & STALL_STQ_FULL;
   sample.stallLSQFull     = trace.blockingSignals & STALL_LSQ_FULL;
   sample.stallROBNotReady = trace.blockingSignals & STALL_ROB;
+
+  sample.exception            = trace.xcptSignals & XCPT_OCCUR;
+  sample.rollback             = trace.xcptSignals & ROLLBACK;
+  sample.memOrderingException = trace.xcptSignals & MEM_ORDERING;
+  sample.loadPageFault        = trace.xcptSignals & LOAD_PAGE_FAULT;
+  sample.storePageFault       = trace.xcptSignals & STORE_PAGE_FAULT;
+  sample.fetchAccessException = trace.xcptSignals & FETCH_ACCESS;
+  sample.misalignedLoad       = trace.xcptSignals & MISALIGNED_LOAD;
+  sample.misalignedStore      = trace.xcptSignals & MISALIGNED_STORE;
 }
 
 void tracedoctor_shadow::addStats(struct traceStatsSummary &results, 
@@ -308,6 +369,14 @@ void tracedoctor_shadow::addStats(struct traceStatsSummary &results,
       }
       instLatencyHist[value] += 1;
     }
+
+    if (sample.isLoad[i]) {
+      results.totalLoads++;
+    }
+
+    if (sample.isStore[i]) {
+      results.totalStores++;
+    }
   }
 
   if (sample.isMispredict) {
@@ -318,6 +387,7 @@ void tracedoctor_shadow::addStats(struct traceStatsSummary &results,
   results.totalMemAccesses += sample.memAccesses;
   results.totalHitsInCache += sample.hitsInCache;
   results.totalMissesInCache += sample.missesInCache;
+  results.totalPartialIssues += sample.partialIssues;
 
   results.totalTaintsCalced += sample.taintsCalced;
   results.totalYrotsOnCalc += sample.yrotsOnCalc;
@@ -327,14 +397,29 @@ void tracedoctor_shadow::addStats(struct traceStatsSummary &results,
   results.totalFilledFpIssueSlots += sample.filledFpIssueSlots;
   results.totalFilledMemIssueSlots += sample.filledMemIssueSlots;
 
-  results.totalStallIFURedirect += sample.stallIFURedirect;
-  results.totalStallROCCWait += sample.stallROCCWait;
-  results.totalStallWaitForEmpty += sample.stallWaitForEmpty;
-  results.totalStallRenStall += sample.stallRenStall;
-  results.totalStallIssueFull += sample.stallIssueFull;
-  results.totalStallSTQFull += sample.stallSTQFull;
-  results.totalStallLSQFull += sample.stallLSQFull;
-  results.totalStallROBNotReady += sample.stallROBNotReady;
+  results.totalFilledStoreSlots   += sample.filledStoreSlots;
+  results.totalFilledStoreAddr    += sample.filledStoreAddr;
+  results.totalFilledStoreData    += sample.filledStoreData;
+  results.totalFilledLoadSlots    += sample.filledLoadSlots;
+  results.totalFilledLoadAddr     += sample.filledLoadAddr;
+
+  results.totalStallIFURedirect   += sample.stallIFURedirect;
+  results.totalStallROCCWait      += sample.stallROCCWait;
+  results.totalStallWaitForEmpty  += sample.stallWaitForEmpty;
+  results.totalStallRenStall      += sample.stallRenStall;
+  results.totalStallIssueFull     += sample.stallIssueFull;
+  results.totalStallSTQFull       += sample.stallSTQFull;
+  results.totalStallLSQFull       += sample.stallLSQFull;
+  results.totalStallROBNotReady   += sample.stallROBNotReady;
+
+  results.totalException            += sample.exception;
+  results.totalRollback             += sample.rollback;
+  results.totalMemOrderingException += sample.memOrderingException;
+  results.totalLoadPageFault        += sample.loadPageFault;
+  results.totalStorePageFault       += sample.storePageFault;
+  results.totalFetchAccessException += sample.fetchAccessException;
+  results.totalMisalignedLoad       += sample.misalignedLoad;
+  results.totalMisalignedStore      += sample.misalignedStore;
 }
 
 bool tracedoctor_shadow::triggerDetection(struct traceStatsToken const &token) {

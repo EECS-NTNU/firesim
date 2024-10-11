@@ -24,19 +24,31 @@
 #define STALL_LSQ_FULL      (0x1 << 6)
 #define STALL_ROB           (0x1 << 7)
 
+#define XCPT_OCCUR          (0x1 << 0)
+#define ROLLBACK            (0x1 << 1)
+#define MEM_ORDERING        (0x1 << 2)
+#define LOAD_PAGE_FAULT     (0x1 << 3)
+#define STORE_PAGE_FAULT    (0x1 << 4)
+#define FETCH_ACCESS        (0x1 << 5)
+#define MISALIGNED_LOAD     (0x1 << 6)
+#define MISALIGNED_STORE    (0x1 << 7)
+
 struct __attribute__((__packed__)) traceStatsToken {
-  uint16_t branchLatency[COREWIDTH];
-  uint16_t instLatency[COREWIDTH];
+  uint16_t branchLatency[COREWIDTH]; //64
+  uint16_t instLatency[COREWIDTH]; //128
   
   uint8_t isCommit;
   uint8_t isBranch;
+  uint8_t isLoad;
+  uint8_t isStore;
   uint8_t branchMispredict;
 
   uint8_t filledMSHRs;
 
   uint8_t memAccesses;
-  uint8_t hitsInCache;
+  uint8_t hitsInCache; //196
   uint8_t missesInCache;
+  uint8_t partialIssues;
 
   uint8_t helpDebug;
   
@@ -45,16 +57,21 @@ struct __attribute__((__packed__)) traceStatsToken {
   uint8_t taintedLoads;
 
   uint8_t filledIntIssueSlots;
-  uint8_t filledFpIssueSlots;
+  uint8_t filledFpIssueSlots; //256
   uint8_t filledMemIssueSlots;
+
+  uint8_t filledStoreSlots;
+  uint8_t filledStoreAddr;
+  uint8_t filledStoreData;
+  uint8_t filledLoadSlots;
+  uint8_t filledLoadAddr;
+
   uint8_t blockingSignals;
+  uint8_t xcptSignals; //320
 
-  uint8_t pad1;
-
-  uint64_t pad2;
-  uint64_t pad3;
-  uint64_t pad4;
-  uint64_t pad5;
+  uint64_t pad2; //384
+  uint64_t pad3; //448
+  uint64_t pad4; //512
 };
 
 struct traceStatsSample {  
@@ -64,12 +81,16 @@ struct traceStatsSample {
   bool isCommit[COREWIDTH];
   uint16_t instLatency[COREWIDTH];
 
+  bool isLoad[COREWIDTH];
+  bool isStore[COREWIDTH];
+
   uint8_t isMispredict;
   uint8_t filledMSHRs;
 
   uint8_t memAccesses;
   uint8_t hitsInCache;
   uint8_t missesInCache;
+  uint8_t partialIssues;
 
   uint8_t taintsCalced;
   uint8_t yrotsOnCalc;
@@ -79,6 +100,12 @@ struct traceStatsSample {
   uint8_t filledFpIssueSlots;
   uint8_t filledMemIssueSlots;
 
+  uint8_t filledStoreSlots;
+  uint8_t filledStoreAddr;
+  uint8_t filledStoreData;
+  uint8_t filledLoadSlots;
+  uint8_t filledLoadAddr;
+
   bool stallIFURedirect;
   bool stallROCCWait;
   bool stallWaitForEmpty;
@@ -87,6 +114,15 @@ struct traceStatsSample {
   bool stallSTQFull;
   bool stallLSQFull;
   bool stallROBNotReady;
+
+  bool exception;
+  bool rollback;
+  bool memOrderingException;
+  bool loadPageFault;
+  bool storePageFault;
+  bool fetchAccessException;
+  bool misalignedLoad;
+  bool misalignedStore;
 };
 
 struct traceStatsSummary {
@@ -95,6 +131,9 @@ struct traceStatsSummary {
   
   uint64_t totalBranches;
   uint64_t totalBranchLatency;
+
+  uint64_t totalLoads;
+  uint64_t totalStores;
   
   uint64_t totalMispredicts;
   uint64_t totalFilledMSHRs;
@@ -102,6 +141,7 @@ struct traceStatsSummary {
   uint64_t totalMemAccesses;
   uint64_t totalHitsInCache;
   uint64_t totalMissesInCache;
+  uint64_t totalPartialIssues;
 
   uint64_t totalTaintsCalced;
   uint64_t totalYrotsOnCalc;
@@ -111,6 +151,12 @@ struct traceStatsSummary {
   uint64_t totalFilledFpIssueSlots;
   uint64_t totalFilledMemIssueSlots;
 
+  uint64_t totalFilledStoreSlots;
+  uint64_t totalFilledStoreAddr;
+  uint64_t totalFilledStoreData;
+  uint64_t totalFilledLoadSlots;
+  uint64_t totalFilledLoadAddr;
+
   uint64_t totalStallIFURedirect;
   uint64_t totalStallROCCWait;
   uint64_t totalStallWaitForEmpty;
@@ -119,6 +165,15 @@ struct traceStatsSummary {
   uint64_t totalStallSTQFull;
   uint64_t totalStallLSQFull;
   uint64_t totalStallROBNotReady;
+
+  uint64_t totalException;
+  uint64_t totalRollback;
+  uint64_t totalMemOrderingException;
+  uint64_t totalLoadPageFault;
+  uint64_t totalStorePageFault;
+  uint64_t totalFetchAccessException;
+  uint64_t totalMisalignedLoad;
+  uint64_t totalMisalignedStore;
   };
 
 class tracedoctor_shadow : public base_profiler {
