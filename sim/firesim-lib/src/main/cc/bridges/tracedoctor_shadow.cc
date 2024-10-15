@@ -186,8 +186,8 @@ tracedoctor_shadow::~tracedoctor_shadow() {
 
 void tracedoctor_shadow::flushHeader() {
   fprintf(std::get<freg_descriptor>(fileRegister[0]),
-  //                          10                            10                            10
-  "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
+  //                          10                            10                            10                            10
+  "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
           "totalCycles",
           "totalCommitted",
 
@@ -217,15 +217,16 @@ void tracedoctor_shadow::flushHeader() {
           "totalFilledStoreAddr", //10
           "totalFilledStoreData",
           "totalFilledLoadSlots",
-          "totalFilledLoadAddr",          
+          "totalFilledLoadAddr",  
+          "totalFilledValidForwards",        
 
           "totalStallIFURedirect",
           "totalStallROCCWait",
           "totalStallWaitForEmpty",
           "totalStallRenStall",
           "totalStallIssueFull",
-          "totalStallSTQFull",
-          "totalStallLSQFull", // 10
+          "totalStallSTQFull", //10
+          "totalStallLSQFull", 
           "totalStallROBNotReady",
 
           "totalException",
@@ -235,16 +236,15 @@ void tracedoctor_shadow::flushHeader() {
           "totalStorePageFault",
           "totalFetchAccessException",
           "totalMisalignedLoad",
-          "totalMisalignedStore"
-          //10
+          "totalMisalignedStore" //10
   );
 }
 
 
 void tracedoctor_shadow::flushResult() {
   fprintf(std::get<freg_descriptor>(fileRegister[0]), 
-                                    // 10                                      10                                       10
-  "%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu\n",
+                                    // 10                                      10                                       10                                      10
+  "%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu;%lu\n",
           result.totalCycles,
           result.totalCommitted,
 
@@ -275,6 +275,7 @@ void tracedoctor_shadow::flushResult() {
           result.totalFilledStoreData,
           result.totalFilledLoadSlots,  
           result.totalFilledLoadAddr,
+          result.totalValidForwards,
 
           result.totalStallIFURedirect,
           result.totalStallROCCWait,
@@ -330,6 +331,7 @@ void tracedoctor_shadow::build_sample(struct traceStatsToken const &trace,
   sample.filledStoreData = trace.filledStoreData;
   sample.filledLoadSlots = trace.filledLoadSlots;
   sample.filledLoadAddr = trace.filledLoadAddr;
+  sample.validForwards = trace.validForwards;
 
   sample.stallIFURedirect = trace.blockingSignals & STALL_IFU_REDIRECT;
   sample.stallROCCWait    = trace.blockingSignals & STALL_ROCC;

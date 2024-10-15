@@ -24,14 +24,14 @@
 #define STALL_LSQ_FULL      (0x1 << 6)
 #define STALL_ROB           (0x1 << 7)
 
-#define XCPT_OCCUR          (0x1 << 0)
-#define ROLLBACK            (0x1 << 1)
-#define MEM_ORDERING        (0x1 << 2)
-#define LOAD_PAGE_FAULT     (0x1 << 3)
-#define STORE_PAGE_FAULT    (0x1 << 4)
-#define FETCH_ACCESS        (0x1 << 5)
-#define MISALIGNED_LOAD     (0x1 << 6)
-#define MISALIGNED_STORE    (0x1 << 7)
+#define MISALIGNED_STORE    (0x1 << 0)
+#define MISALIGNED_LOAD     (0x1 << 1)
+#define FETCH_ACCESS        (0x1 << 2)
+#define STORE_PAGE_FAULT    (0x1 << 3)
+#define LOAD_PAGE_FAULT     (0x1 << 4)
+#define MEM_ORDERING        (0x1 << 5)
+#define ROLLBACK            (0x1 << 6)
+#define XCPT_OCCUR          (0x1 << 7)
 
 struct __attribute__((__packed__)) traceStatsToken {
   uint16_t branchLatency[COREWIDTH]; //64
@@ -65,13 +65,17 @@ struct __attribute__((__packed__)) traceStatsToken {
   uint8_t filledStoreData;
   uint8_t filledLoadSlots;
   uint8_t filledLoadAddr;
+  uint8_t validForwards;
 
-  uint8_t blockingSignals;
-  uint8_t xcptSignals; //320
+  uint8_t blockingSignals; //320
+  uint8_t xcptSignals; 
 
-  uint64_t pad2; //384
-  uint64_t pad3; //448
-  uint64_t pad4; //512
+  uint8_t pad1;
+  uint8_t pad2;
+  uint8_t pad3;
+  uint32_t pad4; //384
+  uint64_t pad5; //448
+  uint64_t pad6; //512
 };
 
 struct traceStatsSample {  
@@ -105,6 +109,7 @@ struct traceStatsSample {
   uint8_t filledStoreData;
   uint8_t filledLoadSlots;
   uint8_t filledLoadAddr;
+  uint8_t validForwards;
 
   bool stallIFURedirect;
   bool stallROCCWait;
@@ -156,6 +161,7 @@ struct traceStatsSummary {
   uint64_t totalFilledStoreData;
   uint64_t totalFilledLoadSlots;
   uint64_t totalFilledLoadAddr;
+  uint64_t totalValidForwards;
 
   uint64_t totalStallIFURedirect;
   uint64_t totalStallROCCWait;
