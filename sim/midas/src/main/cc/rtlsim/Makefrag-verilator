@@ -17,11 +17,12 @@
 #   (optional) verilator_conf: An verilator configuration file
 #   (optional) VERILATOR_FLAGS: extra flags depending on the target
 
-VERILATOR ?= verilator --cc --exe
+VERILATOR_BIN ?= $(CONDA_PREFIX)/bin/verilator
+VERILATOR ?= $(VERILATOR_BIN) --cc --exe
 verilator_v := $(emul_v) $(verilator_wrapper_v)
 verilator_cc := $(emul_cc) $(verilator_harness)
 
-TIMESCALE_OPTS := $(shell verilator --version | perl -lne 'if (/(\d.\d+)/ && $$1 >= 4.034) { print "--timescale 1ns/1ps"; }')
+TIMESCALE_OPTS := $(shell $(VERILATOR_BIN) --version | perl -lne 'if (/(\d.\d+)/ && $$1 >= 4.034) { print "--timescale 1ns/1ps"; }')
 override VERILATOR_FLAGS := \
 	$(TIMESCALE_OPTS) \
 	--top-module $(top_module) \
