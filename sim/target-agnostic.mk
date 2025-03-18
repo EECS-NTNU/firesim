@@ -48,6 +48,8 @@ TARGET_LD_FLAGS ?=
 
 # END MAKEFRAG INTERFACE
 
+VORTEX_ROOT ?= $(HOME)/vortex-gpgpu/vortex-ntnu
+
 # Defined for each platform
 platforms_dir := $(abspath $(firesim_base_dir)/../platforms)
 
@@ -169,7 +171,7 @@ vcs-debug: $(vcs_debug)
 ############################
 # Master Simulation Driver #
 ############################
-DRIVER_CXXOPTS ?= -O2
+DRIVER_CXXOPTS ?= -O2 -I$(VORTEX_ROOT)/runtime/chipyard
 
 $(PLATFORM) ?= $(OUTPUT_DIR)/FireSim-$(PLATFORM)
 
