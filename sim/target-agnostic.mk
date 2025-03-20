@@ -121,13 +121,20 @@ conf: $(fame_annos)
 ####################################
 
 VERILATOR_CXXOPTS ?= -O0
+VERILATOR_LDOPTS ?=
+
+ifdef BUILD_VORTEX
+VERILATOR_CXXOPTS += -I$(VORTEX_ROOT)/runtime/chipyard -I$(VORTEX_ROOT)/sim/common -I$(VORTEX_ROOT)/build/hw -I$(VORTEX_ROOT)/third_party/softfloat/source/include
+VERILATOR_LDOPTS += ${VORTEX_ROOT}/third_party/softfloat/build/Linux-x86_64-GCC/softfloat.a -lrt
+endif
+
 VERILATOR_MAKEFLAGS ?= -j8 VM_PARALLEL_BUILDS=1
 
 verilator = $(GENERATED_DIR)/V$(DESIGN)
 verilator_debug = $(GENERATED_DIR)/V$(DESIGN)-debug
 
 $(verilator) $(verilator_debug): export CXXFLAGS := $(CXXFLAGS) $(common_cxx_flags) $(VERILATOR_CXXOPTS) -D RTLSIM
-$(verilator) $(verilator_debug): export LDFLAGS := $(LDFLAGS) $(common_ld_flags) -Wl,-rpath='$$$$ORIGIN'
+$(verilator) $(verilator_debug): export LDFLAGS := $(LDFLAGS) $(common_ld_flags) $(VERILATOR_LDOPTS) -Wl,-rpath='$$$$ORIGIN'
 
 $(verilator): $(header) $(DRIVER_CC) $(DRIVER_H) $(midas_cc) $(midas_h) $(simulator_verilog)
 	$(MAKE) $(VERILATOR_MAKEFLAGS) -C $(simif_dir) verilator PLATFORM=$(PLATFORM) DRIVER_NAME=$(DESIGN) GEN_FILE_BASENAME=$(BASE_FILE_NAME) \
@@ -171,7 +178,11 @@ vcs-debug: $(vcs_debug)
 ############################
 # Master Simulation Driver #
 ############################
-DRIVER_CXXOPTS ?= -O2 -I$(VORTEX_ROOT)/runtime/chipyard
+DRIVER_CXXOPTS ?= -O2
+
+ifdef BUILD_VORTEX
+DRIVER_CXXOPTS += -I$(VORTEX_ROOT)/runtime/chipyard
+endif
 
 $(PLATFORM) ?= $(OUTPUT_DIR)/FireSim-$(PLATFORM)
 

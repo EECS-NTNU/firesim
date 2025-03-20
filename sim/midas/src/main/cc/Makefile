@@ -58,6 +58,12 @@ emul_files := simif simif_emul emul/mmio emul/mm emul/context
 emul_h     := $(driver_h) $(bridge_h) $(addprefix $(midas_dir)/, $(addsuffix .h, $(emul_files)))
 # This includes c sources and static libraries
 emul_cc    := $(DRIVER) $(bridge_cc) $(addprefix $(midas_dir)/, $(addsuffix .cc, $(emul_files)))
+
+ifdef BUILD_VORTEX
+VORTEX_ROOT ?= $(HOME)/vortex-gpgpu/vortex-ntnu
+emul_cc += $(VORTEX_ROOT)/hw/dpi/chipyard_util.cpp $(VORTEX_ROOT)/hw/dpi/util_dpi.cpp $(VORTEX_ROOT)/hw/dpi/float_dpi.cpp $(VORTEX_ROOT)/sim/common/rvfloats.cpp $(VORTEX_ROOT)/sim/common/softfloat_ext.cpp
+endif
+
 emul_v     := $(design_vh) $(design_v) $(sim_fpga_resource_models)
 
 verilator_conf := rtlsim/ml-verilator-conf.vlt
