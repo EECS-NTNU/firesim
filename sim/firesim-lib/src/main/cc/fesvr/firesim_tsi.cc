@@ -13,7 +13,7 @@ firesim_tsi_t::firesim_tsi_t(int argc, char **argv, bool can_have_loadmem)
 }
 
 void firesim_tsi_t::idle() {
-  parse_command();
+  if (using_ipc_driver) parse_command();
   is_busy = false;
   for (size_t i = 0; i < idle_counts; i++)
     switch_to_target();
