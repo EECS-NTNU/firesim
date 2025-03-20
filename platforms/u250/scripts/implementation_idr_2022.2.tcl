@@ -6,6 +6,11 @@ set idr_start_directive Explore
 set impl_run [get_runs impl_1]
 
 reset_runs ${impl_run}
+
+if {[info exists ::env(BUILD_VORTEX)]} {
+  set vortex_root $::env(VORTEX_ROOT)
+  set_property STEPS.OPT_DESIGN.TCL.PRE ${vortex_root}/hw/syn/xilinx/firesim/pre_opt_async_bram_patch.tcl ${impl_run}
+}
 set_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE ${idr_start_directive} ${impl_run}
 set_property STEPS.PLACE_DESIGN.ARGS.DIRECTIVE ${idr_start_directive} ${impl_run}
 set_property STEPS.ROUTE_DESIGN.ARGS.DIRECTIVE ${idr_start_directive} ${impl_run}
