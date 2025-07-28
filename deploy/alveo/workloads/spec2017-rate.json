@@ -12,6 +12,7 @@
     { "name" : "spec2017-pmapld-ref-521.wrf_r"},
     { "name" : "spec2017-pmapld-ref-523.xalancbmk_r"},
     { "name" : "spec2017-pmapld-ref-525.x264_r"},
+    { "name" : "spec2017-pmapld-ref-526.blender_r"},
     { "name" : "spec2017-pmapld-ref-527.cam4_r"},
     { "name" : "spec2017-pmapld-ref-531.deepsjeng_r"},
     { "name" : "spec2017-pmapld-ref-538.imagick_r"},
